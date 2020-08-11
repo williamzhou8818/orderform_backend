@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // const { check, validationResult } = require('express-validator/check');
-const OrderForm = require('../models/OrderForm');
+const EmailsSender = require('../models/EmailsSender');
 
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
@@ -18,44 +18,38 @@ const transporter = nodemailer.createTransport(sendgridTransport({
 //@route GET api/orderform
 //@desc Get all users contacts
 //@access Private
-router.get('/', async (req, res) => {
-    try {
-        const orderForm = await OrderForm.find({}).sort({date: -1});
-        res.json(orderForm);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Sever Error');
-    }
-});
+
+// router.get('/', async (req, res) => {
+//     try {
+//         const orderForm = await OrderForm.find({}).sort({date: -1});
+//         res.json(orderForm);
+//     } catch (err) {
+//         console.error(err.message);
+//         res.status(500).send('Sever Error');
+//     }
+// });
 
 //@route POST api/orderform
 //@desc Add new Contacts
 //@access Private 
 router.post('/',  async (req, res) => {
-    const {name, phone, address, qty, pizza_selected, selected, order_id, total} = req.body;
+    const {name, order_id, email} = req.body;
     try { 
-        const newOrderForm = new OrderForm({
+        const newEmailsSender = new EmailsSender({
             title:"Lunch special",
-            qty,
             order_id,
-            selected,
-            pizza_selected,
-            name,
-            phone,
-            address,
-            total
+            name
         });
-        const orderForm = await newOrderForm.save();
-        res.json(orderForm);
+        const emailsSender = await newEmailsSender.save();
+        res.json(emailsSender);
         transporter.sendMail({
-            to:'william.zhou8818@gmail.com',
+            to: email,
             from: 'cocopizzashop@gmail.com',
-            subject:`Your got new order: ${order_id}`,
-            html: `<h1>new order from: ${order_id}, Qty ${qty} </h1><br/>
-                    <p>name: ${name},</p>
-                    <p>phone: ${phone},</p>
-                    <p>address: ${address},</p>
-                    <p>Total: $${total}</p>
+            subject:`Your order number is: ${order_id}`,
+            html: `<h3>Hi ${name}, Thank for ordering Lunch special at coco pizza shop,<br/>
+            you order numberis ${order_id}.</h3> <br/>
+            
+           
 
             `
         });
